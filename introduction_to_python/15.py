@@ -6,16 +6,15 @@
 # soll eine Liste mit allen Listen werden.
 
 def weird_sorted_lists(string_liste):
-  first_letters = []
+  first_letters = set()
   output = []
-  # creating a list of all the first letters
+  # creating a set of all the first letters and an output with the final list
   for s in string_liste:
     # making all letters in the list lower case to have
     # not upper and lowercase in different lists
-    first_letters.append(s[0].lower())
-  # making the first_letter list a set to have no duplicates
-  # and iterating over each of the letters
-  for c in set(first_letters):
+    first_letters.add(s[0].lower())
+  # iterating over each of the starting letters
+  for c in first_letters:
     # creating a temporary list for each letter to store
     # all corresponding words in
     l = []
