@@ -13,16 +13,14 @@ import random
 
 def generate(x):
   string = ""
+  o = ["+", "-", "*"]
   while x > 1:
-    operator = random.randint(0, 1)
-    if operator == 0:
-      string += str(random.randint(0, 9)) + "-"
-    else:
-      string += str(random.randint(0, 9)) + "+"
+    operator = random.randint(0, 2)
+    string += str(random.randint(0, 9)) + o[operator]
     x -= 1
   string += str(random.randint(0, 9))
   return string
 
-# Test
+# # Test
 
-print(generate(10))
+# print(generate(10))
