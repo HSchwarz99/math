@@ -1,32 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
-import time
 import os
-
-
-
-def get_session_cookies(userdata):
-  '''
-  description: gets the cookies of the website via loging in with selenium
-  input: userdata in dict like {name: user_name, password: password}
-  output: cookie dict with name of cookies as keys and values as values
-  '''
-  url = "https://isis.tu-berlin.de/auth/shibboleth/index.php"
-  driver = webdriver.Chrome(ChromeDriverManager().install())
-  driver.get(url)
-  time.sleep(3)
-  password = driver.find_element_by_css_selector("#password")
-  name = driver.find_element_by_css_selector("#username")
-  submit = driver.find_element_by_css_selector("#login-button")
-  webdriver.common.action_chains.ActionChains(driver).click(name).send_keys(userdata["name"]).click(password).send_keys(userdata["password"]).click(submit).perform()
-  cookies = driver.get_cookies()
-  driver.quit()
-  cookies_dict = dict()
-  for c in cookies:
-    cookies_dict[c["name"]] = c["value"]
-  return cookies_dict
 
 def scrape_list(m_id, document_list, cookies):
   '''
@@ -44,7 +18,7 @@ def scrape_list(m_id, document_list, cookies):
   for d_type in document_list:
     return_dict[d_type] = []
     for section in sections:
-      return_dict[d_type].append([[x.select(".instancename")[0].text, x['id'].split("-")[1]] for x in section.select(".modtype_" + d_type)])
+      return_dict[d_type].append([[x.select(".instancename")[0].text, x.select("a")[0]["href"]] for x in section.select(".modtype_" + d_type)])
   return return_dict
 
 def prepare_dir(document_type):
@@ -68,7 +42,7 @@ def update_dir(document_type, document_list, cookies):
   files = os.listdir()
   for section in document_list:
     for x in section:
-      if x[0] not in files:
+      if x[0].translate(str.maketrans({"/": "|"})) not in files:
         get_pdf(x[0], x[1], cookies)
   os.chdir("..")
 
@@ -78,20 +52,22 @@ def get_pdf(name, view_id, cookies):
   input: name, id of pdf
   output: None
   '''
-  url = "https://isis.tu-berlin.de/mod/resource/view.php?id=" + view_id
+  url = view_id
   file = requests.get(url, allow_redirects=True, cookies=cookies)
-  open(name, "wb").write(file.content)
+  open(name.translate(str.maketrans({"/": "|"})), "wb").write(file.content)
 
-u_data = dict()
-for x in open("ENV", "r").read().split("\n"):
-  if len(x) > 0:
-    y = x.split("=")
-    u_data[y[0]] = y[1]
-d_list = ["quiz", "resource"]
-anapage_id = "17453"
-C = get_session_cookies(u_data)
-L = scrape_list(anapage_id, d_list, C)
-for d in d_list:
-  prepare_dir(d)
-  update_dir(d, L[d], C)
-
+def execute_scraper(cookies, path_to_math):
+  '''
+  description: executes the scraper
+  input: cookies and the path to the math dir
+  output: None
+  '''
+  cwd = os.getcwd()
+  os.chdir(path_to_math + "/ana_1")
+  d_list = ["quiz", "resource"]
+  anapage_id = "17453"
+  L = scrape_list(anapage_id, d_list, cookies)
+  for d in d_list:
+    prepare_dir(d)
+    update_dir(d, L[d], cookies)
+  os.chdir(cwd)

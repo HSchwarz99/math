@@ -1,6 +1,7 @@
 ENV
 quiz
 resource
+__pycache__
 
 # Compiled source #
 ###################
