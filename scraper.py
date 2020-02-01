@@ -3,7 +3,8 @@ from lina_1 import lina_scraper
 from coma_1 import coma_scraper
 
 from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 import time
 from bs4 import BeautifulSoup
 import requests
@@ -17,7 +18,9 @@ def get_session_cookies(userdata):
   output: cookie dict with name of cookies as keys and values as values
   '''
   url = "https://isis.tu-berlin.de/auth/shibboleth/index.php"
-  driver = webdriver.Chrome(ChromeDriverManager().install())
+  options = Options()
+  options.add_argument("--headless")
+  driver = webdriver.Chrome(options=options)
   driver.get(url)
   time.sleep(3)
   password = driver.find_element_by_css_selector("#password")
